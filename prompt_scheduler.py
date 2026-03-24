@@ -142,25 +142,24 @@ def get_todays_prompt():
     return PROMPTS[prompt_index], prompt_index + 1, day_within_prompt
 
 def send_sms(time_of_day):
-    """Send the daily prompt via SMS."""
+    """Send the daily prompt via two SMS messages."""
     prompt, prompt_num, day_within = get_todays_prompt()
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
     if time_of_day == "morning":
-        header = f"Good morning, Aya. \u2728\nPrompt {prompt_num} of 11 \u2014 Day {day_within} of 3\n{prompt['name']}\n\n"
-        footer = "\n\nSay it out loud. Mean it. The timeline is now."
+        msg1 = f"Good morning, Aya. \u2728\nPrompt {prompt_num} of 11 \u2014 Day {day_within} of 3\n{prompt['name']}\n\nYour prompt is coming now..."
+        msg2 = prompt["text"] + "\n\nSay it out loud. Mean it. The timeline is now."
     else:
-        header = f"Good night, Aya. \ud83c\udf19\nPrompt {prompt_num} of 11 \u2014 Day {day_within} of 3\n{prompt['name']}\n\n"
-        footer = "\n\nWhisper it. Let it carry you to sleep. And so it is."
+        msg1 = f"Good night, Aya. \ud83c\udf19\nPrompt {prompt_num} of 11 \u2014 Day {day_within} of 3\n{prompt['name']}\n\nYour prompt is coming now..."
+        msg2 = prompt["text"] + "\n\nWhisper it. Let it carry you to sleep. And so it is."
 
-    message_body = header + prompt["text"] + footer
+    m1 = client.messages.create(body=msg1, from_=TWILIO_FROM, to=YOUR_NUMBER)
+    print(f"[{datetime.now()}] {time_of_day.upper()} MSG 1 sent — Prompt {prompt_num}, Day {day_within} | SID: {m1.sid}")
 
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-    message = client.messages.create(
-        body=message_body,
-        from_=TWILIO_FROM,
-        to=YOUR_NUMBER
-    )
-    print(f"[{datetime.now()}] {time_of_day.upper()} SMS sent — Prompt {prompt_num}, Day {day_within} | SID: {message.sid}")
+    time.sleep(2)
+
+    m2 = client.messages.create(body=msg2, from_=TWILIO_FROM, to=YOUR_NUMBER)
+    print(f"[{datetime.now()}] {time_of_day.upper()} MSG 2 sent — Prompt {prompt_num}, Day {day_within} | SID: {m2.sid}")
 
 def send_morning():
     send_sms("morning")
